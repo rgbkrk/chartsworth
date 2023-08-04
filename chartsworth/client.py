@@ -111,7 +111,13 @@ class Chartsworth:
 
         image_stream.seek(0)
 
-        self.slack_client.files_upload(
+        if filename is None:
+            filename = "image.png"
+        filename = filename[:160]
+        if not filename.endswith(".png"):
+            filename += ".png"
+
+        self.slack_client.files_upload_v2(
             channel=channel,
             thread_ts=thread_ts,
             file=image_stream,
