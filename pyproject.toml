@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "chartsworth"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["Kyle Kelley <rgbkrk@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">3.10,<3.12"
+python = ">3.9,<3.12"
 slack-sdk = "^3.21.3"
 chatlab = {extras = ["noteable"], version = "1.0.0a13"}
 numpy = "^1.25.2"
