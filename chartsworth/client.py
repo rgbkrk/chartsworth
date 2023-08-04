@@ -11,11 +11,15 @@ class Chartsworth:
     Chartsworth loves threads. Every new instance of chartsworth will try to
     reuse existing threads per channel."""
 
-    def __init__(self, default_channel=None):
+    def __init__(self, default_channel=None, base_deployment=None):
         # Set up Chartsworth
         slack_token = os.getenv("CHARTSWORTH_SLACK_TOKEN", None)
         if slack_token is None:
             raise ValueError("CHARTSWORTH_SLACK_TOKEN not set as an environment variable")
+
+        self.base_deployment = base_deployment
+        if self.base_deployment is None:
+            self.base_deployment = "app.noteable.io"
 
         self.slack_client = WebClient(token=slack_token)
         self.default_channel = default_channel
@@ -114,3 +118,9 @@ class Chartsworth:
         self.slack_client.files_upload_v2(
             channel=channel, thread_ts=thread_ts, filename="plot.png", file=image_data
         )
+
+    def get_current_notebook_id(self):
+        return os.environ["NTBL_FILE_ID"]
+
+    def get_current_notebook_link(self):
+        return f"https://{self.base_deployment}/f/{self.get_current_notebook_id()}"
