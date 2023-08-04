@@ -11,10 +11,13 @@ slack-sdk = "^3.21.3"
 chatlab = {extras = ["noteable"], version = "1.0.0a13"}
 numpy = ">=1.23"
 matplotlib = ">=3.6"
+pillow = ">=9.0"
+
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.4.1"
 black = "^23.7.0"
+types-pillow = "^10.0.0.2"
 
 [build-system]
 requires = ["poetry-core"]

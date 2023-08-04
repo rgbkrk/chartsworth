@@ -1,7 +1,8 @@
+import io
 import os
-from io import IOBase
-from typing import Optional
+from typing import Optional, Union
 
+import PIL.Image
 from slack_sdk import WebClient
 
 
@@ -72,12 +73,26 @@ class Chartsworth:
 
         self.slack_client.reactions_add(channel=channel, timestamp=thread_ts, name=name)
 
-    def post_image(self, image_stream: IOBase, filename: str, channel: Optional[str] = None):
+    def post_image(
+        self,
+        image: Union[io.IOBase, PIL.Image.Image],
+        filename: str,
+        channel: Optional[str] = None,
+    ):
         """Posts an image to a thread."""
         channel = self.__determine_channel(channel)
         thread_ts = self.threads.get(channel, None)
         if thread_ts is None:
             thread_ts = self.__begin_thread("Image :thread:", channel=channel)
+
+        image_stream: io.IOBase = io.BytesIO()
+
+        if isinstance(image, PIL.Image.Image):
+            image_stream = io.BytesIO()
+            image.save(image_stream, format="PNG")
+            image_stream.seek(0)
+        else:
+            image_stream = image
 
         self.slack_client.files_upload(
             channel=channel,
