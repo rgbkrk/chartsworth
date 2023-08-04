@@ -3,7 +3,10 @@ import os
 from typing import Optional, Union
 
 import PIL.Image
+from matplotlib.figure import Figure
 from slack_sdk import WebClient
+
+from .plot import create_monster_plot
 
 
 class Chartsworth:
@@ -53,7 +56,19 @@ class Chartsworth:
         self.threads[channel] = thread_ts
         return thread_ts
 
-    def post(self, text, channel: Optional[str] = None, **kwargs):
+    def post(
+        self,
+        any: Union[str, io.IOBase, PIL.Image.Image, Figure],
+        channel: Optional[str] = None,
+        **kwargs,
+    ):
+        """Posts a message or image to a thread."""
+        if isinstance(any, str):
+            self.post_text(any, channel=channel, **kwargs)
+        else:
+            self.post_image(any, channel=channel, **kwargs)
+
+    def post_text(self, text: str, channel: Optional[str] = None, **kwargs):
         """Posts a message to a thread."""
         channel = self.__determine_channel(channel)
         thread_ts = self.threads.get(channel, None)
@@ -75,7 +90,7 @@ class Chartsworth:
 
     def post_image(
         self,
-        image: Union[io.IOBase, PIL.Image.Image],
+        image: Union[io.IOBase, PIL.Image.Image, Figure],
         filename: str,
         channel: Optional[str] = None,
     ):
@@ -88,11 +103,13 @@ class Chartsworth:
         image_stream: io.IOBase = io.BytesIO()
 
         if isinstance(image, PIL.Image.Image):
-            image_stream = io.BytesIO()
             image.save(image_stream, format="PNG")
-            image_stream.seek(0)
+        elif isinstance(image, Figure):
+            image.savefig(image_stream, format="PNG")
         else:
             image_stream = image
+
+        image_stream.seek(0)
 
         self.slack_client.files_upload(
             channel=channel,
@@ -101,38 +118,16 @@ class Chartsworth:
             filename=filename,
         )
 
-    def post_monster(self):
+    def post_monster(self, text: str, channel: Optional[str] = None):
         """Creates a monster plot and posts it to a thread."""
-        channel = self.__determine_channel()
+        channel = self.__determine_channel(channel)
         thread_ts = self.threads.get(channel, None)
         if thread_ts is None:
             thread_ts = self.__begin_thread("Monster Plot :thread:", channel=channel)
 
-        from .plot import create_monster_plot
+        figure = create_monster_plot()
 
-        image_stream = create_monster_plot()
-        self.slack_client.files_upload_v2(
-            channel=channel,
-            thread_ts=thread_ts,
-            file=image_stream,
-            filename="plot.png",
-        )
-
-    def post_figure(self, figure, channel: Optional[str] = None):
-        """Posts a figure to a thread."""
-        channel = self.__determine_channel(channel)
-        thread_ts = self.threads.get(channel, None)
-        if thread_ts is None:
-            thread_ts = self.__begin_thread("Figure :thread:", channel=channel)
-
-        from .plot import fig_to_bytes
-
-        image_data = fig_to_bytes(figure)
-        print(image_data[0])
-
-        self.slack_client.files_upload_v2(
-            channel=channel, thread_ts=thread_ts, filename="plot.png", file=image_data
-        )
+        self.post_image(figure, "monster_plot.png", channel=channel)
 
     def get_current_notebook_id(self):
         return os.environ["NTBL_FILE_ID"]
