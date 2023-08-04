@@ -119,12 +119,30 @@ class Chartsworth:
 
         image_stream.seek(0)
 
-        self.slack_client.files_upload_v2(
-            channel=channel,
-            thread_ts=thread_ts,
-            file=image_stream,
-            filename=filename,
-        )
+        try:
+            self.slack_client.files_upload_v2(
+                channel=channel,
+                thread_ts=thread_ts,
+                file=image_stream,
+                filename=filename,
+            )
+        except Exception:
+            import traceback
+
+            from IPython.core.display_functions import display
+
+            self.post(
+                f"Unable to upload `{filename}` to Slack. Check the <{self.notebook_link}|Notebook> for more details."
+            )
+            display(
+                {
+                    "text/markdown": "Sometimes slack will fail to upload images, especially if using a Channel Name rather than an ID."
+                },
+                raw=True,
+            )
+
+            traceback_str = traceback.format_exc()
+            print(traceback_str)
 
     def post_monster(self, text: str, channel: Optional[str] = None):
         """Creates a monster plot and posts it to a thread."""
@@ -138,7 +156,7 @@ class Chartsworth:
         self.post_image(figure, "monster_plot.png", channel=channel)
 
     def get_current_notebook_id(self):
-        return os.environ["NTBL_FILE_ID"]
+        return os.environ.get("NTBL_FILE_ID", None)
 
     def get_current_notebook_link(self):
         return f"https://{self.base_deployment}/f/{self.get_current_notebook_id()}"
