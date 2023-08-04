@@ -1,4 +1,5 @@
 import os
+from io import IOBase
 from typing import Optional
 
 from slack_sdk import WebClient
@@ -14,9 +15,7 @@ class Chartsworth:
         # Set up Chartsworth
         slack_token = os.getenv("CHARTSWORTH_SLACK_TOKEN", None)
         if slack_token is None:
-            raise ValueError(
-                "CHARTSWORTH_SLACK_TOKEN not set as an environment variable"
-            )
+            raise ValueError("CHARTSWORTH_SLACK_TOKEN not set as an environment variable")
 
         self.slack_client = WebClient(token=slack_token)
         self.default_channel = default_channel
@@ -34,12 +33,10 @@ class Chartsworth:
             )
         return channel
 
-    def __begin_thread(self, message: str, channel: Optional[str] = None) -> str:
+    def __begin_thread(self, text: str, channel: Optional[str] = None) -> str:
         """Creates a new thread (abandoning the previous one)."""
         channel = self.__determine_channel(channel)
-        message_response = self.slack_client.chat_postMessage(
-            channel=channel, text=message
-        )
+        message_response = self.slack_client.chat_postMessage(channel=channel, text=text)
 
         if not message_response["ok"]:
             raise ValueError(
@@ -51,19 +48,27 @@ class Chartsworth:
         self.threads[channel] = thread_ts
         return thread_ts
 
-    def post(self, message, channel: Optional[str] = None):
+    def post(self, text, channel: Optional[str] = None, **kwargs):
         """Posts a message to a thread."""
         channel = self.__determine_channel(channel)
         thread_ts = self.threads.get(channel, None)
         if thread_ts is None:
-            self.__begin_thread(message, channel=channel)
+            self.__begin_thread(text, channel=channel)
             return
 
         self.slack_client.chat_postMessage(
-            channel=channel, thread_ts=thread_ts, text=message
+            channel=channel, thread_ts=thread_ts, text=text, **kwargs
         )
 
-    def post_image(self, image_stream, filename, channel: Optional[str] = None):
+    def react_to_thread(self, name, channel: Optional[str] = None):
+        channel = self.__determine_channel(channel)
+        thread_ts = self.threads.get(channel, None)
+        if thread_ts is None:
+            thread_ts = self.__begin_thread("Post :thread:", channel=channel)
+
+        self.slack_client.reactions_add(channel=channel, timestamp=thread_ts, name=name)
+
+    def post_image(self, image_stream: IOBase, filename, channel: Optional[str] = None):
         """Posts an image to a thread."""
         channel = self.__determine_channel(channel)
         thread_ts = self.threads.get(channel, None)
@@ -108,18 +113,4 @@ class Chartsworth:
 
         self.slack_client.files_upload_v2(
             channel=channel, thread_ts=thread_ts, filename="plot.png", file=image_data
-        )
-
-    def post_whatever(self, text: str, channel: Optional[str] = None, **kwargs):
-        channel = self.__determine_channel(channel)
-        thread_ts = self.threads.get(channel, None)
-        if thread_ts is None:
-            thread_ts = self.__begin_thread("Post :thread:", channel=channel)
-
-        self.slack_client.reactions_add(
-            channel=channel, timestamp=thread_ts, name="chartsworth", **kwargs
-        )
-
-        self.slack_client.chat_postMessage(
-            text=text, channel=channel, thread_ts=thread_ts, **kwargs
         )
