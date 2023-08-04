@@ -72,7 +72,7 @@ class Chartsworth:
 
         self.slack_client.reactions_add(channel=channel, timestamp=thread_ts, name=name)
 
-    def post_image(self, image_stream: IOBase, filename, channel: Optional[str] = None):
+    def post_image(self, image_stream: IOBase, filename: str, channel: Optional[str] = None):
         """Posts an image to a thread."""
         channel = self.__determine_channel(channel)
         thread_ts = self.threads.get(channel, None)
@@ -124,3 +124,11 @@ class Chartsworth:
 
     def get_current_notebook_link(self):
         return f"https://{self.base_deployment}/f/{self.get_current_notebook_id()}"
+
+    @property
+    def notebook_link(self):
+        return self.get_current_notebook_link()
+
+    @property
+    def notebook_id(self):
+        return self.get_current_notebook_id()
