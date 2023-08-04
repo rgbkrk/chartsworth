@@ -2,6 +2,7 @@ import io
 import os
 from typing import Optional, Union
 
+import matplotlib.pyplot as plt
 import PIL.Image
 from matplotlib.figure import Figure
 from slack_sdk import WebClient
@@ -90,7 +91,7 @@ class Chartsworth:
 
     def post_image(
         self,
-        image: Union[io.IOBase, PIL.Image.Image, Figure],
+        image: Union[io.BytesIO, PIL.Image.Image, Figure],
         filename: str,
         channel: Optional[str] = None,
     ):
@@ -100,22 +101,23 @@ class Chartsworth:
         if thread_ts is None:
             thread_ts = self.__begin_thread("Image :thread:", channel=channel)
 
-        image_stream: io.IOBase = io.BytesIO()
+        image_stream = io.BytesIO()
 
         if isinstance(image, PIL.Image.Image):
             image.save(image_stream, format="PNG")
         elif isinstance(image, Figure):
+            plt.close(image)
             image.savefig(image_stream, format="PNG")
         else:
             image_stream = image
-
-        image_stream.seek(0)
 
         if filename is None:
             filename = "image.png"
         filename = filename[:160]
         if not filename.endswith(".png"):
             filename += ".png"
+
+        image_stream.seek(0)
 
         self.slack_client.files_upload_v2(
             channel=channel,

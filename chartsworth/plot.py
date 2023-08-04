@@ -26,4 +26,7 @@ def create_monster_plot():
     ax.set_aspect("equal", adjustable="box")
     ax.set_ylim(0, 1)
 
+    # Don't let matplotlib show the plot immediately
+    plt.close(fig)
+
     return fig
