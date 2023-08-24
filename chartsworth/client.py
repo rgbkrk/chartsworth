@@ -42,10 +42,10 @@ class Chartsworth:
             )
         return channel
 
-    def __begin_thread(self, text: str, channel: Optional[str] = None) -> str:
+    def __begin_thread(self, text: str, channel: Optional[str] = None, **kwargs) -> str:
         """Creates a new thread (abandoning the previous one)."""
         channel = self.__determine_channel(channel)
-        message_response = self.slack_client.chat_postMessage(channel=channel, text=text)
+        message_response = self.slack_client.chat_postMessage(channel=channel, text=text, **kwargs)
 
         if not message_response["ok"]:
             raise ValueError(
@@ -74,7 +74,7 @@ class Chartsworth:
         channel = self.__determine_channel(channel)
         thread_ts = self.threads.get(channel, None)
         if thread_ts is None:
-            self.__begin_thread(text, channel=channel)
+            self.__begin_thread(text, channel=channel, **kwargs)
             return
 
         self.slack_client.chat_postMessage(
