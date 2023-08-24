@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = ">3.9,<3.12"
 slack-sdk = "^3.21.3"
-chatlab = {extras = ["noteable"], version = "1.0.0a13"}
+chatlab = {extras = ["noteable"], version = "1.0.0a20"}
 numpy = ">=1.23"
 matplotlib = ">=3.6"
 pillow = ">=9.0"
