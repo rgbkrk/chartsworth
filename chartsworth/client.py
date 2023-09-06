@@ -22,6 +22,7 @@ class Chartsworth:
     Args:
         default_channel (str, optional): The default channel to post to. Defaults to None.
         base_deployment (str, optional): The base deployment to use for links. Defaults to "app.noteable.io".
+        token (str, optional): The Slack token to use. Defaults to None.
 
     >>> from chartsworth import Chartsworth
     >>> chartsworth = Chartsworth()
@@ -32,11 +33,17 @@ class Chartsworth:
 
     """
 
-    def __init__(self, default_channel=None, base_deployment=None):
+    def __init__(self, default_channel=None, base_deployment=None, token=None):
         # Set up Chartsworth
-        slack_token = os.getenv("CHARTSWORTH_SLACK_TOKEN", None)
-        if slack_token is None:
-            raise ValueError("CHARTSWORTH_SLACK_TOKEN not set as an environment variable")
+        if token is not None:
+            slack_token = token
+        else:
+            slack_token = os.getenv("CHARTSWORTH_SLACK_TOKEN", None)
+            if slack_token is None:
+                raise ValueError(
+                    "No slack token provided. "
+                    "Pass a token in or set the CHARTSWORTH_SLACK_TOKEN environment variable."
+                )
 
         self.base_deployment = base_deployment
         if self.base_deployment is None:
@@ -108,10 +115,19 @@ class Chartsworth:
     def post_image(
         self,
         image: Union[io.BytesIO, PIL.Image.Image, Figure],
-        filename: str,
+        filename: str = "image.png",
         channel: Optional[str] = None,
     ):
-        """Posts an image to a thread."""
+        """Posts an image to a thread.
+
+        Args:
+            image (Union[io.BytesIO, PIL.Image.Image, matplotlib.figure.Figure]): The image to post.
+            filename (str): The filename to use for the image.
+            channel (Optional[str], optional): The channel to post to. Defaults to None.
+
+        Raises:
+            ValueError: If the image is not a PIL.Image.Image or a matplotlib.figure.Figure object.
+        """
         channel = self.__determine_channel(channel)
         thread_ts = self.threads.get(channel, None)
         if thread_ts is None:
@@ -152,7 +168,7 @@ class Chartsworth:
             )
             display(
                 {
-                    "text/markdown": "Sometimes slack will fail to upload images, especially if using a Channel Name rather than an ID."
+                    "text/markdown": "## Sometimes slack will fail to upload images, especially if using a Channel Name rather than an ID."
                 },
                 raw=True,
             )
@@ -161,7 +177,7 @@ class Chartsworth:
             print(traceback_str)
 
     def post_monster(self, text: str, channel: Optional[str] = None):
-        """Creates a monster plot and posts it to a thread."""
+        """Creates a monster plot and posts it to a thread. Mostly for demo, and also because it's fun."""
         channel = self.__determine_channel(channel)
         thread_ts = self.threads.get(channel, None)
         if thread_ts is None:
