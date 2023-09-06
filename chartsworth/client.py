@@ -1,3 +1,6 @@
+"""Chartsworth is a Chart Monster for posting from notebooks to Slack.
+
+In other words, it's a slackbot that runs inside a notebook or script."""
 import io
 import os
 from typing import Optional, Union
@@ -14,7 +17,20 @@ class Chartsworth:
     """Chartsworth is a Chart Monster for posting from notebooks to Slack.
 
     Chartsworth loves threads. Every new instance of chartsworth will try to
-    reuse existing threads per channel."""
+    reuse existing threads per channel.
+
+    Args:
+        default_channel (str, optional): The default channel to post to. Defaults to None.
+        base_deployment (str, optional): The base deployment to use for links. Defaults to "app.noteable.io".
+
+    >>> from chartsworth import Chartsworth
+    >>> chartsworth = Chartsworth()
+    >>> chartsworth.post("Hello World!")
+    >>> figure = plt.figure()
+    >>> plt.plot([1, 2, 3], [1, 2, 3])
+    >>> chartsworth.post(figure)
+
+    """
 
     def __init__(self, default_channel=None, base_deployment=None):
         # Set up Chartsworth
