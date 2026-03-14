@@ -6,19 +6,19 @@ authors = ["Kyle Kelley <rgbkrk@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.9"
-slack-sdk = "^3.21.3"
+python = ">=3.10"
+slack-sdk = "^3.41.0"
 numpy = ">=1.23"
 matplotlib = ">=3.6"
-pillow = ">=9.0"
+pillow = ">=10.0"
 
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^1.4.1"
-black = "^23.7.0"
-types-pillow = "^10.0.0.2"
-ipykernel = "^6.25.0"
-ipython = "^8.14.0"
+mypy = "^1.19.1"
+black = "^26.3.1"
+types-pillow = "^10.2.0.20240822"
+ipykernel = "^7.2.0"
+ipython = "^8.38.0"
 
 [build-system]
 requires = ["poetry-core"]
